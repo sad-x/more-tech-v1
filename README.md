@@ -30,17 +30,17 @@ level - вариант тестируемых данных:
 1. Инициализация данных
 
 ```commandline
-/opt/spark/bin/spark-submit --jars ~/spark-hadoop-cloud_2.13-3.5.3.jar copy_init.py <level>
+/opt/spark/bin/spark-submit --jars ~/spark-hadoop-cloud_2.13-3.5.3.jar src/copy_init.py <level>
 ```
 
 2. Запуск применения инкремента
 
 ```commandline
-/opt/spark/bin/spark-submit --jars ~/spark-hadoop-cloud_2.13-3.5.3.jar join.py <level>
+/opt/spark/bin/spark-submit --jars ~/spark-hadoop-cloud_2.13-3.5.3.jar src/join.py <level>
 ```
 
 3. Проверка тестируемых данных
 
 ```commandline
-/opt/spark/bin/spark-submit --jars ~/spark-hadoop-cloud_2.13-3.5.3.jar check_result.py <level>
+/opt/spark/bin/spark-submit --jars ~/spark-hadoop-cloud_2.13-3.5.3.jar src/check_result.py <level>
 ```
