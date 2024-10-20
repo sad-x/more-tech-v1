@@ -6,9 +6,17 @@ from pyspark.conf import SparkConf
 import logging
 from datetime import datetime
 
+import argparse
+
+def get_level():
+    parser = argparse.ArgumentParser(description = 'join script')
+    parser.add_argument("-l", dest="level", default=2, type=int)
+    args = parser.parse_args()
+    return args.level
+
 #Вы только не расслабляйтесь, если решение вы будете подгонять под этот скрипт, это не гарантирует очки за корректность работы
 
-level = "2" #Какую таблицу тестируем, маленькую, среднюю или большую
+level = get_level()
 your_bucket_name = "result" #Имя вашего бакета
 your_access_key = "SKTW7WRLVJ020VTV2XEJ" #Ключ от вашего бакета
 your_secret_key = "jJynvObHTG5AeS1nrYoIIVSh815iIaMAZZrjuo2m" #Ключ от вашего бакета

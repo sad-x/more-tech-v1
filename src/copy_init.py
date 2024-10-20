@@ -3,7 +3,15 @@ from pyspark.sql.functions import *
 from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 
-level = "2" #Какую таблицу тестируем, маленькую, среднюю или большую
+import argparse
+
+def get_level():
+    parser = argparse.ArgumentParser(description = 'join script')
+    parser.add_argument("-l", dest="level", default=2, type=int)
+    args = parser.parse_args()
+    return args.level
+
+level = get_level()
 your_bucket_name = "result" #Имя вашего бакета
 your_access_key = "SKTW7WRLVJ020VTV2XEJ" #Ключ от вашего бакета
 your_secret_key = "jJynvObHTG5AeS1nrYoIIVSh815iIaMAZZrjuo2m" #Ключ от вашего бакета
@@ -38,12 +46,11 @@ sc = spark.sparkContext
 log = spark._jvm.org.apache.log4j.LogManager.getLogger(">>> App")
 
 table_to_copy = f"init{level}"
-table_to_copy2 = f"init{level}_2"
 
 src_bucket = f"s3a://source-data"
 tgt_bucket = f"s3a://{your_bucket_name}"
 src_init_table = f"{src_bucket}/{table_to_copy}"
-tgt_init_table = f"{tgt_bucket}/{table_to_copy2}"
+tgt_init_table = f"{tgt_bucket}/{table_to_copy}"
 
 #hadoop_conf = sc._jsc.hadoopConfiguration()
 #src_fs = spark._jvm.org.apache.hadoop.fs.FileSystem.get(spark._jvm.java.net.URI(src_bucket), hadoop_conf)
