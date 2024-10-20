@@ -12,9 +12,9 @@ def get_level():
     return args.level
 
 level = get_level()
-your_bucket_name = "result" #Имя вашего бакета
-your_access_key = "SKTW7WRLVJ020VTV2XEJ" #Ключ от вашего бакета
-your_secret_key = "jJynvObHTG5AeS1nrYoIIVSh815iIaMAZZrjuo2m" #Ключ от вашего бакета
+your_bucket_name = "<BUCKET_NAME>" # Имя вашего бакета
+your_access_key = "<ACCESS_KEY>" # Ключ от вашего бакета
+your_secret_key = "<SECRET_KEY>" # Ключ от вашего бакета
 
 configs = {
     "spark.sql.files.maxPartitionBytes": "1073741824", #1GB
@@ -52,13 +52,6 @@ tgt_bucket = f"s3a://{your_bucket_name}"
 src_init_table = f"{src_bucket}/{table_to_copy}"
 tgt_init_table = f"{tgt_bucket}/{table_to_copy}"
 
-#hadoop_conf = sc._jsc.hadoopConfiguration()
-#src_fs = spark._jvm.org.apache.hadoop.fs.FileSystem.get(spark._jvm.java.net.URI(src_bucket), hadoop_conf)
-#src_path = spark._jvm.org.apache.hadoop.fs.Path(src_init_table)
-#tgt_fs = spark._jvm.org.apache.hadoop.fs.FileSystem.get(spark._jvm.java.net.URI(tgt_bucket), hadoop_conf)
-#tgt_path = spark._jvm.org.apache.hadoop.fs.Path(tgt_init_table)
-#tgt_fs.delete(tgt_path, True)
-#spark._jvm.org.apache.hadoop.fs.FileUtil.copy(src_fs, src_path, tgt_fs, tgt_path, False, hadoop_conf)
 
 spark.read.parquet(src_init_table).write.mode("overwrite").partitionBy("eff_to_month", "eff_from_month").parquet(tgt_init_table)
 

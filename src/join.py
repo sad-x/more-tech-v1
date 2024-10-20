@@ -22,19 +22,20 @@ def get_level():
 
 
 level = get_level()
-your_bucket_name = "result" #Имя вашего бакета
-your_access_key = "SKTW7WRLVJ020VTV2XEJ" #Ключ от вашего бакета
-your_secret_key = "jJynvObHTG5AeS1nrYoIIVSh815iIaMAZZrjuo2m" #Ключ от вашего бакета
+your_bucket_name = "<BUCKET_NAME>" # Имя вашего бакета
+your_access_key = "<ACCESS_KEY>" # Ключ от вашего бакета
+your_secret_key = "<SECRET_KEY>" # Ключ от вашего бакета
 
 cp = configparser.ConfigParser()
 config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'conf.ini')
 cp.read(config_file_path)
-# Получение конфигурации спарка
+
+# Установка конфигурации спарка
 sparkConfigs = dict(cp['Spark'])
 conf = SparkConf()
 conf.setAll(sparkConfigs.items())
 
-
+# Задание временной метки, символизирующую, что запись открыта и активна
 globalConfigs = dict(cp['Global'])
 open_dt = globalConfigs.get('open_dt', "5999-12-31")
 

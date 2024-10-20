@@ -14,12 +14,10 @@ def get_level():
     args = parser.parse_args()
     return args.level
 
-#Вы только не расслабляйтесь, если решение вы будете подгонять под этот скрипт, это не гарантирует очки за корректность работы
-
 level = get_level()
-your_bucket_name = "result" #Имя вашего бакета
-your_access_key = "SKTW7WRLVJ020VTV2XEJ" #Ключ от вашего бакета
-your_secret_key = "jJynvObHTG5AeS1nrYoIIVSh815iIaMAZZrjuo2m" #Ключ от вашего бакета
+your_bucket_name = "<BUCKET_NAME>" # Имя вашего бакета
+your_access_key = "<ACCESS_KEY>" # Ключ от вашего бакета
+your_secret_key = "<SECRET_KEY>" # Ключ от вашего бакета
 
 logging.basicConfig(filename=f"/home/alpha/scripts/logs/log_result__{datetime.strftime(datetime.now(), r'%y%m%d_%H%M%S')}.txt",
                     filemode='a',
@@ -55,7 +53,6 @@ conf.setAll(configs.items())
 
 spark = SparkSession.builder.config(conf=conf).getOrCreate()
 sc = spark.sparkContext
-# log = spark._jvm.org.apache.log4j.LogManager.getLogger(">>> App")
 
 incr_bucket = f"s3a://source-data"
 your_bucket = f"s3a://{your_bucket_name}"
