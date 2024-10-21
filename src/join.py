@@ -101,7 +101,7 @@ def run_multiple_jobs(part_list: [str]):
     log.info('START Threads')
 
     # Запускаем в нескольких потоках для улучшения производительности. 
-    with ThreadPoolExecutor(max_workers = globalConfigs.get('max_threads', 4)) as executor:
+    with ThreadPoolExecutor(max_workers = int(globalConfigs.get('max_threads', 4))) as executor:
         futures = []
         for part in part_list:
             futures.append(executor.submit(run_task, from_dt=part))
