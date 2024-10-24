@@ -2,53 +2,56 @@ from pyspark.sql.types import StringType
 from pyspark.sql.functions import *
 from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
+
 from datetime import datetime
 import logging
+import argparse
+import configparser
+import os
 
+# Функция получения объема данных из аргументов командной строки
+def get_level():
+    parser = argparse.ArgumentParser(description = 'join script')
+    parser.add_argument("-l", dest="level", default=2, type=int)
+    args = parser.parse_args()
+    return args.level
 
-level = "2" #Какую таблицу тестируем, маленькую, среднюю или большую
+level = get_level()
 your_bucket_name = "result" #Имя вашего бакета
 your_access_key = "SKTW7WRLVJ020VTV2XEJ" #Ключ от вашего бакета
 your_secret_key = "jJynvObHTG5AeS1nrYoIIVSh815iIaMAZZrjuo2m" #Ключ от вашего бакета
 
+# Получение конфигурации из файла
+cp = configparser.ConfigParser()
+config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'conf.ini')
+cp.read(config_file_path)
+
+# Установка конфигурации спарка
+sparkConfigs = dict(cp['Spark'])
+conf = SparkConf()
+conf.setAll(sparkConfigs.items())
+
+# Задание параметров для Iceberg
+icebergConfigs = dict(cp['Iceberg'])
+catalog = icebergConfigs.get('catalog')
+schema = icebergConfigs.get('schema')
+
+# Получение сессии и контектса спарка
+spark = SparkSession.builder.config(conf=conf).getOrCreate()
+sc = spark.sparkContext
+
+# Задание имён необходимых в работе объектов
 incr_bucket = f"s3a://source-data"
 target_bucket = f"s3a://{your_bucket_name}"
 incr_table_loc = f"{incr_bucket}/incr{level}"  # таблица с источника ODS , куда мы скопировали инкремент
 init_table_loc = f"{target_bucket}/init{level}"  # реплика
 
-iceberg_target_table = f"my_catalog.default.trg_ice_part_tab_{level}"
-iceberg_temp_table = f"my_catalog.default.temp_iceberg_{level}_{datetime.strftime(datetime.now(), r'%y%m%d_%H%M%S')}"
+iceberg_target_table = f"{catalog}.{schema}.trg_ice_part_tab_{level}"
+iceberg_temp_table = f"{catalog}.{schema}.temp_iceberg_{level}_{datetime.strftime(datetime.now(), r'%y%m%d_%H%M%S')}"
 
-configs = {
-    "spark.sql.files.maxPartitionBytes": "1073741824", #1GB
-    "spark.hadoop.fs.s3a.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem",
-    "spark.hadoop.fs.s3a.path.style.access": "true",
-    "spark.hadoop.fs.s3a.connection.ssl.enabled": "true",
-    "spark.hadoop.fs.s3a.fast.upload": "true",
-    "spark.hadoop.fs.s3a.block.size": "134217728", # 128MB
-    "spark.hadoop.fs.s3a.multipart.size": "268435456", # 256MB
-    "spark.hadoop.fs.s3a.multipart.threshold": "536870912", # 512MB
-    "spark.hadoop.fs.s3a.committer.name": "magic",
-    "spark.hadoop.fs.s3a.bucket.all.committer.magic.enabled": "true",
-    "spark.hadoop.fs.s3a.threads.max": "64",
-    "spark.hadoop.fs.s3a.connection.maximum": "64",
-    "spark.hadoop.fs.s3a.fast.upload.buffer": "array",
-    "spark.hadoop.fs.s3a.directory.marker.retention": "keep",
-    "spark.hadoop.fs.s3a.endpoint": "api.s3.az1.t1.cloud",
-    "spark.hadoop.fs.s3a.bucket.source-data.access.key": "P2EGND58XBW5ASXMYLLK",
-    "spark.hadoop.fs.s3a.bucket.source-data.secret.key": "IDkOoR8KKmCuXc9eLAnBFYDLLuJ3NcCAkGFghCJI",
-    f"spark.hadoop.fs.s3a.bucket.{your_bucket_name}.access.key": your_access_key,
-    f"spark.hadoop.fs.s3a.bucket.{your_bucket_name}.secret.key": your_secret_key,
-    "spark.sql.parquet.compression.codec": "zstd",
-    "spark.sql.catalog.my_catalog": "org.apache.iceberg.spark.SparkCatalog",
-    "spark.sql.catalog.my_catalog.warehouse": "s3a://result/iceberg",
-    "spark.sql.catalog.my_catalog.catalog-impl": "org.apache.iceberg.jdbc.JdbcCatalog",
-    "spark.sql.catalog.my_catalog.uri": "jdbc:postgresql://127.0.0.1:5432/postgres",
-    "spark.sql.catalog.my_catalog.jdbc.user": "postgres",
-    "spark.sql.catalogImplementation": "in-memory"
-}
 
-logging.basicConfig(filename=f"/home/alpha/scripts/logs/log_join_v2__{datetime.strftime(datetime.now(), r'%y%m%d_%H%M%S')}.txt",
+# Конфигурация логирования
+logging.basicConfig(filename=f"/home/alpha/scripts/logs/log_join_level{level}__{datetime.strftime(datetime.now(), r'%y%m%d_%H%M%S')}.txt",
                     filemode='a',
                     format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                     datefmt='%H:%M:%S',
@@ -57,12 +60,6 @@ log = logging.getLogger("App")
 
 all_time = datetime.now()
 log.info("Application start")
-
-conf = SparkConf()
-# conf.set('spark.scheduler.mode', 'FAIR')
-conf.setAll(configs.items())
-spark = SparkSession.builder.config(conf=conf).getOrCreate()
-sc = spark.sparkContext
 
 time_create_temp = datetime.now()
 # Запись промежуточной Iceberg таблицы на основе инкрементальных parquet данных в S3
